@@ -7,7 +7,6 @@ import ru.kata.spring.boot_security.demo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import java.util.HashSet;
 import java.util.Set;
 
 @Component
@@ -21,54 +20,40 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+
         Role adminRole = roleService.findByName("ROLE_ADMIN");
         if (adminRole == null) {
             adminRole = new Role("ROLE_ADMIN");
             roleService.save(adminRole);
-            System.out.println("Created role: ROLE_ADMIN");
         }
 
         Role userRole = roleService.findByName("ROLE_USER");
         if (userRole == null) {
             userRole = new Role("ROLE_USER");
             roleService.save(userRole);
-            System.out.println("Created role: ROLE_USER");
         }
 
-        if (!userService.existsByUsername("admin")) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword("admin123");
-            admin.setEmail("admin@example.com");
-            admin.setFirstName("Admin");
-            admin.setLastName("User");
-            admin.setAge(30);
+        createUser("admin", "admin123", "admin@example.com",
+                "Admin", "User", 30, adminRole);
 
-            Set<Role> adminRoles = new HashSet<>();
-            adminRoles.add(adminRole);
-            admin.setRoles(adminRoles);
+        createUser("user", "user123", "user@example.com",
+                "Regular", "User", 25, userRole);
+    }
 
-            userService.save(admin);
-            System.out.println("Created admin user: admin/admin123");
-        }
-
-        if (!userService.existsByUsername("user")) {
+    private void createUser(String username, String password, String email,
+                            String firstName, String lastName, int age, Role role) {
+        if (!userService.existsByUsername(username)) {
             User user = new User();
-            user.setUsername("user");
-            user.setPassword("user123");
-            user.setEmail("user@example.com");
-            user.setFirstName("Regular");
-            user.setLastName("User");
-            user.setAge(25);
-
-            Set<Role> userRoles = new HashSet<>();
-            userRoles.add(userRole);
-            user.setRoles(userRoles);
+            user.setUsername(username);
+            user.setPassword(password);
+            user.setEmail(email);
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setAge(age);
+            user.setRoles(Set.of(role));
 
             userService.save(user);
-            System.out.println("Created regular user: user/user123");
+            System.out.println("Created: " + username + "/" + password);
         }
-
-        System.out.println("=== Data initialization completed ===");
     }
 }
